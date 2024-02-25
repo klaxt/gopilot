@@ -44,7 +44,7 @@ func (d *devicesDataSource) Schema(_ context.Context, _ datasource.SchemaRequest
 						"name": schema.StringAttribute{
 							Computed: true,
 						},
-						"type": schema.StringAttribute{
+						"model": schema.StringAttribute{
 							Computed: true,
 						},
 						"status": schema.StringAttribute{
@@ -80,7 +80,7 @@ func (d *devicesDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		deviceState := deviceModel{
 			ID:     types.Int64Value(int64(device.ID)),
 			Name:   types.StringValue(device.Name),
-			Type:   types.StringValue(device.Type),
+			Model:  types.StringValue(device.Model),
 			Color:  types.StringValue(device.Color),
 			Status: types.StringValue(device.Status),
 		}
@@ -128,7 +128,7 @@ type devicesDataSourceModel struct {
 type deviceModel struct {
 	ID     types.Int64  `tfsdk:"id"`
 	Name   types.String `tfsdk:"name"`
-	Type   types.String `tfsdk:"type"`
+	Model  types.String `tfsdk:"model"`
 	Status types.String `tfsdk:"status"`
 	Color  types.String `tfsdk:"color"`
 }

@@ -14,7 +14,7 @@ func (c *Client) GetDevices() ([]Device, error) {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req, nil)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -29,48 +29,48 @@ func (c *Client) GetDevices() ([]Device, error) {
 }
 
 // GetCoffee - Returns specific coffee (no auth required)
-func (c *Client) GetDevice(coffeeID string) ([]Device, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/devices/%s", c.HostURL, coffeeID), nil)
+func (c *Client) GetDevice(deviceId int64) (*Device, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/devices/%d", c.HostURL, deviceId), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req, nil)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	devices := []Device{}
-	err = json.Unmarshal(body, &devices)
+	device := Device{}
+	err = json.Unmarshal(body, &device)
 	if err != nil {
 		return nil, err
 	}
 
-	return devices, nil
+	return &device, nil
 }
 
 // CreateCoffee - Create new coffee
-func (c *Client) CreateCoffee(coffee Device, authToken *string) (*Device, error) {
-	rb, err := json.Marshal(coffee)
+func (c *Client) CreateDevice(device Device) (*Device, error) {
+	rb, err := json.Marshal(device)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/coffees", c.HostURL), strings.NewReader(string(rb)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/devices", c.HostURL), strings.NewReader(string(rb)))
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := c.doRequest(req, authToken)
+	body, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	newCoffee := Device{}
-	err = json.Unmarshal(body, &newCoffee)
+	newDevice := Device{}
+	err = json.Unmarshal(body, &newDevice)
 	if err != nil {
 		return nil, err
 	}
 
-	return &newCoffee, nil
+	return &newDevice, nil
 }

@@ -38,6 +38,7 @@ func CreateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid model", http.StatusBadRequest)
 		return
 	}
+	device.ID = len(devices) + 1
 	devices = append(devices, device)
 	json.NewEncoder(w).Encode(device)
 }

@@ -28,3 +28,13 @@ https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework/p
 go install .
 TF_LOG=INFO terraform -chdir=examples/devices plan
 ```
+
+## Create and Read
+
+https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework/providers-plugin-framework-resource-create
+
+```
+go install .
+terraform -chdir=examples/device apply        
+terraform -chdir=examples/device show
+```
