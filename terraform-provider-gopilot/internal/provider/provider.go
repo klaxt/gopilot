@@ -5,9 +5,11 @@ package provider
 
 import (
 	"context"
-	"net/http"
+	"os"
 
+	"github.com/hashicorp-demoapp/hashicups-client-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,27 +32,32 @@ type ScaffoldingProviderModel struct {
 	Endpoint types.String `tfsdk:"endpoint"`
 }
 
+// gopilotProviderModel maps provider schema data to a Go type.
+type gopilotProviderModel struct {
+	Host types.String `tfsdk:"host"`
+}
+
 func (p *ScaffoldingProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "scaffolding"
+	resp.TypeName = "gopilot"
 	resp.Version = p.version
 }
 
 func (p *ScaffoldingProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
+			"host": schema.StringAttribute{
+				MarkdownDescription: "The host of the provider",
+				Required:            true,
 			},
 		},
 	}
 }
 
 func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data ScaffoldingProviderModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	// Retrieve provider data from configuration
+	var config gopilotProviderModel
+	diags := req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -58,8 +65,51 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	// Configuration values are now available.
 	// if data.Endpoint.IsNull() { /* ... */ }
 
+	// If practitioner provided a configuration value for any of the
+	// attributes, it must be a known value.
+
+	if config.Host.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("host"),
+			"Unknown HashiCups API Host",
+			"The provider cannot create the HashiCups API client as there is an unknown configuration value for the HashiCups API host. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the HASHICUPS_HOST environment variable.",
+		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Default values to environment variables, but override
+	// with Terraform configuration value if set.
+
+	host := os.Getenv("GOPILOT_HOST")
+	if !config.Host.IsNull() {
+		host = config.Host.ValueString()
+	}
+
+	// If any of the expected configurations are missing, return
+	// errors with provider-specific guidance.
+
+	if host == "" {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("host"),
+			"Missing HashiCups API Host",
+			"The provider cannot create the HashiCups API client as there is a missing or empty value for the HashiCups API host. "+
+				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
+				"If either is already set, ensure the value is not empty.",
+		)
+	}
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	// Example client configuration for data sources and resources
-	client := http.DefaultClient
+	// TODO create gopilot client
+	// client := http.DefaultClient
+	user, pass := "w", "p"
+	client, _ := hashicups.NewClient(&host, &user, &pass)
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }
@@ -72,7 +122,7 @@ func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.R
 
 func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewExampleDataSource,
+		NewDevicesDataSource,
 	}
 }
 
