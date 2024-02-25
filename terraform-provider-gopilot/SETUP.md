@@ -19,3 +19,12 @@ https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework/p
 go install .
 terraform -chdir=examples/devices plan
 ```
+
+## Data Source
+
+https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework/providers-plugin-framework-data-source-read
+
+```
+go install .
+TF_LOG=INFO terraform -chdir=examples/devices plan
+```

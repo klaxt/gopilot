@@ -11,3 +11,7 @@ provider "gopilot" {
 }
 
 data "gopilot_devices" "example" {}
+
+output "example_coffees" {
+  value = data.gopilot_devices.example
+}

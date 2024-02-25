@@ -4,6 +4,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"gopilot/models"
 
@@ -11,7 +12,7 @@ import (
 )
 
 var devices = []models.Device{
-	{ID: "1", Name: "Device 1", Status: "active"},
+	{ID: 1, Name: "Device 1", Status: "active"},
 }
 
 func GetDevicesHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +22,8 @@ func GetDevicesHandler(w http.ResponseWriter, r *http.Request) {
 func GetDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for _, item := range devices {
-		if item.ID == params["id"] {
+		i, _ := strconv.Atoi(params["id"])
+		if item.ID == i {
 			json.NewEncoder(w).Encode(item)
 			return
 		}
@@ -43,7 +45,8 @@ func CreateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for index, item := range devices {
-		if item.ID == params["id"] {
+		i, _ := strconv.Atoi(params["id"])
+		if item.ID == i {
 			devices = append(devices[:index], devices[index+1:]...)
 			break
 		}
@@ -60,7 +63,8 @@ func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for index, item := range devices {
-		if item.ID == params["id"] {
+		i, _ := strconv.Atoi(params["id"])
+		if item.ID == i {
 			devices[index] = newDevice
 			break
 		}

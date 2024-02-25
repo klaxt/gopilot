@@ -7,7 +7,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/hashicorp-demoapp/hashicups-client-go"
+	gopilot "terraform-provider-gopilot/internal/provider/client"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -101,6 +102,7 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -108,8 +110,16 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	// Example client configuration for data sources and resources
 	// TODO create gopilot client
 	// client := http.DefaultClient
-	user, pass := "w", "p"
-	client, _ := hashicups.NewClient(&host, &user, &pass)
+	client, err := gopilot.NewClient(&host) // Use the NewClient function to create a client instance
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Unable to Create HashiCups API Client",
+			"An unexpected error occurred when creating the HashiCups API client. "+
+				"If the error is not clear, please contact the provider developers.\n\n"+
+				"HashiCups Client Error: "+err.Error(),
+		)
+		return
+	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }
