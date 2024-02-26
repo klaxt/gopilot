@@ -74,3 +74,30 @@ func (c *Client) CreateDevice(device Device) (*Device, error) {
 
 	return &newDevice, nil
 }
+
+// UpdateOrder - Updates an order
+func (c *Client) UpdateDevice(orderID int64, device Device) (*Device, error) {
+	rb, err := json.Marshal(device)
+	if err != nil {
+		return nil, err
+	}
+
+	println(fmt.Sprintf("%s/api/devices%d", c.HostURL, orderID))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/devices/%d", c.HostURL, orderID), strings.NewReader(string(rb)))
+	if err != nil {
+		return nil, err
+	}
+
+	_, errr := c.doRequest(req)
+	if errr != nil {
+		return nil, errr
+	}
+
+	newDevice := Device{}
+	// err = json.Unmarshal(body, &newDevice)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	return &newDevice, nil
+}

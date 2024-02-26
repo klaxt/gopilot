@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -150,6 +151,7 @@ func (r *deviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
+	tflog.Info(ctx, fmt.Sprintf("--Storing Read State--%d %s", state.ID, state.Name))
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -158,6 +160,67 @@ func (r *deviceResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *deviceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// Retrieve values from plan
+	var plan deviceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	var currentState deviceModel
+	diags2 := req.State.Get(ctx, &currentState)
+	resp.Diagnostics.Append(diags2...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	tflog.Info(ctx, fmt.Sprintf("--Update Current Context--%d %s", currentState.ID.ValueInt64(), currentState.Name))
+	tflog.Info(ctx, fmt.Sprintf("--Update Plan Context--%d %s", plan.ID, plan.Name))
+
+	// Generate API request body from plan
+	var planDevice = gopilot.Device{
+		ID:     int(currentState.ID.ValueInt64()),
+		Name:   plan.Name.ValueString(),
+		Model:  plan.Model.ValueString(),
+		Status: plan.Status.ValueString(),
+		Color:  plan.Color.ValueString(),
+	}
+
+	tflog.Info(ctx, fmt.Sprintf("--Update Device--%d", currentState.ID.ValueInt64()))
+	// Update existing order
+	_, err := r.client.UpdateDevice(currentState.ID.ValueInt64(), planDevice)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Updating HashiCups Order",
+			"Could not update order, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
+	// Fetch updated items from GetOrder as UpdateOrder items are not
+	// populated.
+	tflog.Info(ctx, "--Get updated device--")
+	device, err := r.client.GetDevice(int64(planDevice.ID))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading HashiCups Order",
+			"Could not read HashiCups order ID "+strconv.FormatInt(int64(planDevice.ID), 10)+": "+err.Error(),
+		)
+		return
+	}
+	tflog.Info(ctx, fmt.Sprintf("--Updated Device--%d %s", device.ID, device.Name))
+
+	// Update resource state with updated items and timestamp
+	plan.ID = types.Int64Value(int64(device.ID))
+	plan.Name = types.StringValue(device.Name)
+	plan.Model = types.StringValue(device.Model)
+	plan.Color = types.StringValue(device.Color)
+	plan.Status = types.StringValue(device.Status)
+
+	diags = resp.State.Set(ctx, plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
