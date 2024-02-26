@@ -55,3 +55,4 @@ Still some rough edges if server state changes outside context of terraform
 
 curl -v -X POST -H "Content-Type: application/json" -d '{"name":"Device Test", "status":"active", "model":"iPad", "color":"Green"}' http://localhost:8000/api/devices 
 curl -v -X PUT -H "Content-Type: application/json" -d '{"id":3, "name":"Device Test", "status":"active", "model":"iPad", "color":"Blue"}' http://localhost:8000/api/devices/3
+curl -v -X DELETE http://localhost:8000/api/devices/2

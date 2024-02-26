@@ -60,7 +60,7 @@ func DeleteDeviceHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	json.NewEncoder(w).Encode(devices)
+	// json.NewEncoder(w).Encode(devices)
 }
 
 func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {

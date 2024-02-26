@@ -101,3 +101,19 @@ func (c *Client) UpdateDevice(orderID int64, device Device) (*Device, error) {
 
 	return &newDevice, nil
 }
+
+// DeleteDevice deletes a device with the specified order ID.
+// It sends a DELETE request to the API endpoint and returns an error if any.
+func (c *Client) DeleteDevice(orderID int64) error {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/devices/%d", c.HostURL, orderID), nil)
+	if err != nil {
+		return err
+	}
+
+	_, errr := c.doRequest(req)
+	if err != nil {
+		return errr
+	}
+
+	return nil
+}

@@ -225,4 +225,24 @@ func (r *deviceResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *deviceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	tflog.Info(ctx, fmt.Sprintf("--Deleting Device--"))
+	// Retrieve values from state
+	var state deviceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Info(ctx, fmt.Sprintf("--Delete Device--%d %s", state.ID.ValueInt64(), state.Name))
+	// Delete existing order
+	err := r.client.DeleteDevice(state.ID.ValueInt64())
+	tflog.Info(ctx, "--Deleted Device--")
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Deleting HashiCups Order",
+			"Could not delete order, unexpected error: "+err.Error(),
+		)
+		return
+	}
 }

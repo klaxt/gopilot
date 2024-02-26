@@ -15,7 +15,7 @@ resource "gopilot_device" "iPad" {
   name = "edu"
   model = "iPad"
   status = "active"
-  color = "red"
+  color = "blue"
 }
 
 output "iPad" {
